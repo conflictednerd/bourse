@@ -135,3 +135,30 @@ def test_conflicting_sell_sizes_are_refused(_prices):
     assert result.exit_code == 1
     assert "just one way" in result.output
     assert load("mine").shares["AAPL"] == pytest.approx(5)
+
+
+def test_bare_bourse_shows_the_guide():
+    """Someone who types the name alone should be told what they can do."""
+    out = runner.invoke(app, []).output
+    assert "bourse buy <symbol> <dollars>" in out
+    assert "bourse help <command>" in out
+
+
+def test_the_guide_lists_every_command():
+    """A command missing from the guide is a command nobody will find."""
+    from typer.main import get_command
+
+    out = runner.invoke(app, ["help"]).output
+    for name in get_command(app).commands:
+        assert f"bourse {name}" in out, f"'{name}' is missing from the guide"
+
+
+def test_help_for_one_command_shows_its_real_options():
+    out = runner.invoke(app, ["help", "sell"]).output
+    assert "--shares" in out and "--all" in out
+
+
+def test_help_for_an_unknown_command_says_so():
+    result = runner.invoke(app, ["help", "bogus"])
+    assert result.exit_code == 1
+    assert "no 'bogus' command" in result.output

@@ -1,9 +1,9 @@
 # bourse
 
-Paper-trade the S&P 500 from the terminal. Real prices, imaginary money.
+Simulate trading S&P 500 from the terminal. Real prices, imaginary money.
 
 ```
-bourse new mine --cash 10000
+bourse new my_portfolio --cash 10000
 bourse buy AAPL 3000
 bourse show
 bourse analyze
@@ -11,13 +11,36 @@ bourse analyze
 
 ## Install
 
-Requires [uv](https://docs.astral.sh/uv/). Nothing else — no API key, no account.
+You need [uv](https://docs.astral.sh/uv/), which installs Python for you. If you
+don't already have it, one line does it.
+
+macOS or Linux:
+
+```
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Windows, in PowerShell:
+
+```
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Open a new terminal so the change takes effect, then install bourse:
 
 ```
 uv tool install git+https://github.com/conflictednerd/bourse
 ```
 
-Or run it without installing:
+That is it! If uv warns that its directory is not on your PATH, run
+`uv tool update-shell` and open a new terminal. Check it with `bourse help`, then:
+
+```
+bourse new my_portfolio --cash 10000
+```
+
+To update later, run the install command again with `--force`. To remove it,
+`uv tool uninstall bourse`. To try it without installing anything permanently:
 
 ```
 uvx --from git+https://github.com/conflictednerd/bourse bourse show
@@ -26,9 +49,9 @@ uvx --from git+https://github.com/conflictednerd/bourse bourse show
 ## Commands
 
 ```
-bourse new mine --cash 10000     start a portfolio
+bourse new my_portfolio --cash 10000     start a portfolio
 bourse ls                        list portfolios
-bourse use mine                  choose the one commands act on
+bourse use my_portfolio                  choose the one commands act on
 
 bourse buy  AAPL 500             spend $500 on Apple
 bourse buy  AAPL --shares 3      buy three shares
@@ -42,6 +65,9 @@ bourse show                      current position
 bourse analyze                   dashboard: charts, holdings, history, performance
 bourse quote NVDA                look up a price
 bourse search health             find a ticker
+
+bourse help                      this list, from the terminal
+bourse help buy                  every option for one command
 ```
 
 Amounts are in dollars unless you pass `--shares`. Fractional shares are fine.
@@ -61,7 +87,7 @@ to run; bourse answers price questions and executes trades.
 ```python
 import bourse
 
-p = bourse.load("mine")
+p = bourse.load("my_portfolio")
 
 for symbol in ["AAPL", "MSFT", "NVDA"]:
     if bourse.price(symbol) < bourse.price_on(symbol, "2026-07-01") * 0.95:
@@ -87,11 +113,11 @@ One JSON file per portfolio, and nothing else:
 
 ```
 ~/.bourse/
-  mine.json
+  my_portfolio.json
   current          the portfolio in use
 ```
 
-Copy `mine.json` to another machine and carry on; copy it alongside to branch a
+Copy `my_portfolio.json` to another machine and carry on; copy it alongside to branch a
 portfolio. `BOURSE_HOME` relocates the directory, `BOURSE_PORTFOLIO` pins one
 portfolio to a single shell.
 
@@ -100,7 +126,7 @@ derived from it rather than stored, so nothing can disagree with the record.
 
 ```json
 {
-  "name": "mine",
+  "name": "my_portfolio",
   "created": "2026-08-01T18:04:11Z",
   "log": [
     {"at": "2026-08-01T18:04:11Z", "type": "deposit", "amount": 10000},
@@ -136,6 +162,10 @@ uv run python scripts/update_symbols.py    # refresh the S&P 500 list
 The engine (`clock`, `portfolio`, `analytics`, `market`) takes prices as plain
 mappings and never touches the terminal. The presentation layer (`format`, `ui`,
 `cli`, `tui`) renders results and computes nothing.
+
+Adding a command? Give it a docstring and a `help=` on each argument--that is
+what `bourse help <command>` shows--and add a line to `GUIDE` in `bourse/ui.py`
+so it appears in `bourse help`. A test fails if you forget the second part.
 
 ## Licence
 

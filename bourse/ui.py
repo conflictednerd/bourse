@@ -235,6 +235,72 @@ def stock(detail) -> Table:
     return grid
 
 
+#: The command reference, grouped by what each command is for. Adding a command
+#: means adding a line here; :mod:`tests.test_cli` checks none is left out.
+GUIDE = [
+    (
+        "Portfolios",
+        [
+            ("bourse new <name> [--cash 10000]", "start a portfolio"),
+            ("bourse ls", "list your portfolios"),
+            ("bourse use <name>", "choose the one commands act on"),
+        ],
+    ),
+    (
+        "Trading",
+        [
+            ("bourse buy <symbol> <dollars>", "spend that many dollars"),
+            ("bourse buy <symbol> --shares <n>", "buy a share count instead"),
+            ("bourse sell <symbol> <dollars>", "sell that much of it"),
+            ("bourse sell <symbol> --all", "close the position"),
+        ],
+    ),
+    (
+        "Cash",
+        [
+            ("bourse deposit <amount>", "add cash"),
+            ("bourse withdraw <amount>", "take cash out"),
+        ],
+    ),
+    (
+        "Looking",
+        [
+            ("bourse show", "cash, holdings and today's change"),
+            ("bourse analyze [name]", "dashboard: charts, holdings, history"),
+            ("bourse quote <symbol>", "look up a price"),
+            ("bourse search <text>", "find a ticker by company name"),
+        ],
+    ),
+    (
+        "On any command",
+        [
+            ("-p, --portfolio <name>", "act on another portfolio just this once"),
+            ("-y, --yes", "skip the confirmation prompt"),
+            ("--note <text>", "record why, on a deposit or withdrawal"),
+        ],
+    ),
+]
+
+
+def guide() -> Table:
+    """Every command and its syntax."""
+    grid = Table.grid(padding=(0, 3))
+    grid.add_column()
+    grid.add_column()
+
+    for heading, lines in GUIDE:
+        grid.add_row(Text(heading, style="bold"), "")
+        for syntax, meaning in lines:
+            grid.add_row(Text(f"  {syntax}", style=SYMBOL), Text(meaning, style=LABEL))
+        grid.add_row("", "")
+
+    grid.add_row(
+        Text("  bourse help <command>", style=SYMBOL),
+        Text("every option for one command", style=LABEL),
+    )
+    return grid
+
+
 def performance(perf) -> Table:
     """A period's result."""
     grid = Table.grid(padding=(0, 3))

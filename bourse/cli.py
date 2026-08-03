@@ -36,13 +36,12 @@ class _Bourse(TyperGroup):
 app = typer.Typer(
     cls=_Bourse,
     add_completion=False,
-    no_args_is_help=True,
     help="Paper-trade the S&P 500. Real prices, imaginary money.",
     rich_markup_mode="rich",
 )
 
 
-@app.callback()
+@app.callback(invoke_without_command=True)
 def _global(
     ctx: typer.Context,
     portfolio: str = typer.Option(
@@ -50,6 +49,8 @@ def _global(
     ),
 ):
     ctx.obj = portfolio
+    if ctx.invoked_subcommand is None:
+        _guide()
 
 
 def _name(ctx: typer.Context) -> str:
@@ -83,6 +84,14 @@ def _confirm(name: str, headline: Text, details: list[Text], yes: bool) -> bool:
     answer = Confirm.ask("  Confirm?", default=False, console=console)
     console.print()
     return answer
+
+
+def _guide() -> None:
+    console.print()
+    console.print("  [bold]bourse[/bold] [dim]— paper-trade the S&P 500.[/dim]")
+    console.print("  [dim]Amounts are dollars unless you ask for shares.[/dim]\n")
+    console.print(Padding(ui.guide(), (0, 2)))
+    console.print()
 
 
 def _done(message: str) -> None:
@@ -342,6 +351,22 @@ def analyze(
     from .tui import Dashboard
 
     Dashboard(name or _name(ctx)).run()
+
+
+@app.command("help")
+def explain(
+    ctx: typer.Context,
+    command: str = typer.Argument(None, help="A command to explain in full."),
+):
+    """List the commands, or explain one of them in full."""
+    if command is None:
+        return _guide()
+    found = ctx.parent.command.get_command(ctx, command)
+    if found is None:
+        raise BourseError(f"There is no '{command}' command. Run 'bourse help' for the list.")
+    # Asking the command to print its own help keeps this in step with its real
+    # arguments, so a command can never be documented as something it is not.
+    found.main(args=["--help"], prog_name=f"bourse {command}", standalone_mode=False)
 
 
 def main() -> None:
